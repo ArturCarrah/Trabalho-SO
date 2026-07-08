@@ -104,11 +104,33 @@ kill -CONT <pid>
 
 
 
-# Anti_bomb
+# Anti Bomb
 
 Daemon de monitoramento e contenção de *fork bombs*. O sistema monitora
 continuamente os processos ativos da máquina, identifica padrões anormais de
 criação de processos e atua automaticamente para impedir sua propagação.
+
+## Compilação
+
+```bash
+make
+```
+
+## Testando na VM
+
+Terminal, utilizando o Anti Bomb:
+
+```bash
+./anti_bomb
+```
+
+Terminal, gerando um fork bomb de exemplo:
+
+```bash
+:(){ :|:& };:
+```
+
+### Nota: Outros forks bombs podem ser gerados, no trabalho, foi gerado um processo que faz um fork() em um while(true).
 
 ## Como funciona:
 
@@ -125,4 +147,4 @@ criação de processos e atua automaticamente para impedir sua propagação.
 7. **Eliminação da Ameaça:** Após certificar-se de que todas as ramificações do *fork bomb* estão congeladas e seguras, o *daemon* percorre a lista negra enviando o sinal `SIGKILL` para cada PID, eliminando a ameaça do sistema de forma definitiva.
 8. **Restauramento do Ciclo:** Concluída a purga, o *daemon* limpa as estruturas de dados temporárias, redefine sua prioridade de execução para o nível normal e retoma a rotina padrão de varredura no diretório `/proc`.
 
-##Nota: Caso quem faça o fork bomb seja o bash, então uma excessão é aberta e o processo bash de menor PID não recebe o sinal `SIGKILL`, pois causaria instabilidade no sistema. 
+### Nota: Caso quem faça o fork bomb seja o bash, então uma excessão é aberta e o processo bash de menor PID não recebe o sinal `SIGKILL`, pois causaria instabilidade no sistema. 
