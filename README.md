@@ -104,7 +104,7 @@ kill -CONT <pid>
 
 
 
-# forkbomb_monitor
+# anti_bomb
 
 Daemon de monitoramento e contenção de *fork bombs*. O sistema monitora
 continuamente os processos ativos da máquina, identifica padrões anormais de
