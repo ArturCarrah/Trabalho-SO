@@ -104,34 +104,25 @@ kill -CONT <pid>
 
 
 
-# anti_bomb
+# Anti_bomb
 
 Daemon de monitoramento e contenção de *fork bombs*. O sistema monitora
 continuamente os processos ativos da máquina, identifica padrões anormais de
 criação de processos e atua automaticamente para impedir sua propagação.
 
-## Como funciona o monitor
+## Como funciona:
 
-1. O processo principal é transformado em um daemon e inicia seu loop de
-   monitoramento contínuo.
+1. **Inicialização do Daemon:** O processo principal desvincula-se do terminal, transforma-se em um *daemon* e inicia seu loop de monitoramento contínuo em segundo plano.
+2. **Varredura do Sistema:** A cada ciclo de processamento, o *daemon* acessa o diretório virtual `/proc`, que centraliza as informações de todos os processos ativos no ambiente Linux.
+3. **Extração de Metadados:** Para cada diretório de processo encontrado, o sistema realiza duas ações:
+   - Identifica o **PID** (ID do processo) através do nome do próprio diretório.
+   - Lê o arquivo `/proc/[pid]/comm` para obter o **nome do processo** associado.
+4. **Indexação em Memória:** As informações coletadas são estruturadas em um mapa de vetores (`std::map<std::string, std::vector<pid_t>>`), vinculando cada nome de processo exclusivo à sua respectiva lista de PIDs ativos.
+5. **Análise de Threshold (Limite):** A cada nova inserção no mapa, o *daemon* avalia o tamanho do vetor do processo correspondente. Caso o volume ultrapasse o limite de segurança configurado (atualmente fixado em **20 PIDs** com o mesmo nome), o loop de varredura é interrompido e o nome do processo é marcado como um **alvo (ameaça)**.
+6. **Contenção Imediata (Bloqueio):** Com o alvo identificado, o *daemon* eleva sua própria prioridade de execução ao nível máximo permitido pelo sistema e realiza uma nova varredura no `\proc`. Para cada instância do processo invasor localizada:
+   - Envia o sinal `SIGPAUSE` (ou `SIGSTOP`) para **congelar o processo**, impedindo instantaneamente a sua autorreplicação e propagação.
+   - Armazena o PID do processo paralisado em uma lista negra de contenção.
+7. **Eliminação da Ameaça:** Após certificar-se de que todas as ramificações do *fork bomb* estão congeladas e seguras, o *daemon* percorre a lista negra enviando o sinal `SIGKILL` para cada PID, eliminando a ameaça do sistema de forma definitiva.
+8. **Restauramento do Ciclo:** Concluída a purga, o *daemon* limpa as estruturas de dados temporárias, redefine sua prioridade de execução para o nível normal e retoma a rotina padrão de varredura no diretório `/proc`.
 
-2. Durante cada ciclo, o daemon acessa o diretório virtual `/proc`, que contém
-   informações sobre todos os processos em execução no sistema.
-
-3. Para cada processo encontrado:
-   - obtém seu PID através do nome do diretório dentro de `/proc`;
-   - acessa o arquivo `/proc/[pid]/comm`, que contém o nome do processo;
-   - associa o nome do processo ao seu respectivo PID.
-
-4. As informações coletadas são armazenadas em uma estrutura baseada em um
-   `map` de vetores, permitindo relacionar cada nome de processo a uma lista
-   de PIDs:
-
-
-
-  
-- **Não distingue write faults de read faults**: `minflt`/`majflt` contam
-  qualquer tipo de fault. Se quiser algo mais fino (só escritas), a
-  alternativa seria instrumentar via `perf_event_open` com o evento
-  `PERF_COUNT_SW_PAGE_FAULTS` — mais complexo, mas dá contadores por
-  processo com mais controle.
+##Nota: Caso quem faça o fork bomb seja o bash, então uma excessão é aberta e o processo bash de menor PID não recebe o sinal `SIGKILL`, pois causaria instabilidade no sistema. 
