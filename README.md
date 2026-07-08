@@ -1,3 +1,11 @@
+Artur Carrah 
+Artur Melo
+Davi Maurício
+André Peixoto
+João Pedro Rolim Ximenes
+
+
+
 # memmonitor
 
 Daemon de monitoramento de page faults por processo (`monitor.c`) + gerador
@@ -87,6 +95,35 @@ kill -CONT <pid>
   threshold fixo.
 - **Sinalização**: `kill()` exige mesmo UID do processo alvo, ou root.
   Rode o monitor como root para poder agir sobre qualquer processo.
+
+
+
+# forkbomb_monitor
+
+Daemon de monitoramento e contenção de *fork bombs*. O sistema monitora
+continuamente os processos ativos da máquina, identifica padrões anormais de
+criação de processos e atua automaticamente para impedir sua propagação.
+
+## Como funciona o monitor
+
+1. O processo principal é transformado em um daemon e inicia seu loop de
+   monitoramento contínuo.
+
+2. Durante cada ciclo, o daemon acessa o diretório virtual `/proc`, que contém
+   informações sobre todos os processos em execução no sistema.
+
+3. Para cada processo encontrado:
+   - obtém seu PID através do nome do diretório dentro de `/proc`;
+   - acessa o arquivo `/proc/[pid]/comm`, que contém o nome do processo;
+   - associa o nome do processo ao seu respectivo PID.
+
+4. As informações coletadas são armazenadas em uma estrutura baseada em um
+   `map` de vetores, permitindo relacionar cada nome de processo a uma lista
+   de PIDs:
+
+
+
+  
 - **Não distingue write faults de read faults**: `minflt`/`majflt` contam
   qualquer tipo de fault. Se quiser algo mais fino (só escritas), a
   alternativa seria instrumentar via `perf_event_open` com o evento
