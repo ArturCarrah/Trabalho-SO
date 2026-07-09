@@ -152,6 +152,8 @@ Terminal, gerando um fork bomb de exemplo:
 
 ## Fluxograma
 
+
+```mermaid
 ---
 config:
   layout: fixed
