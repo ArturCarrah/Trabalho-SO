@@ -152,5 +152,6 @@ Terminal, gerando um fork bomb de exemplo:
 
 ## Fluxograma
 
-[Anti bom fluxograma.pdf](https://github.com/user-attachments/files/29824385/Anti.bom.fluxograma.pdf)
+<img width="8192" height="2792" alt="anti bomb fluxograma" src="https://github.com/user-attachments/assets/f2b5edb0-d016-42d4-aaa9-734d3e02bf6c" />
+
 
