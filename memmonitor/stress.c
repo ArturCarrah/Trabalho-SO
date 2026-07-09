@@ -1,18 +1,3 @@
-/*
- * stress.c - Gerador de carga de page faults
- *
- * Aloca uma região de memória anônima e, em loop, escreve em cada
- * página e depois a descarta com madvise(MADV_DONTNEED). Isso força
- * o kernel a tratar um novo page fault (minor fault) na próxima
- * escrita, gerando uma taxa alta e sustentada de faults — ideal
- * para validar o monitor.
- *
- * Uso:
- *   ./stress [num_threads] [tamanho_MB]
- *
- * Ex: ./stress 4 64   -> 4 threads, 64 MB de região cada uma
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
