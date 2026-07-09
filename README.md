@@ -12,6 +12,7 @@ João Pedro Rolim Ximenes
 
 
 
+
 # memmonitor
 
 Daemon de monitoramento de page faults por processo (`monitor.c`) + gerador
@@ -102,7 +103,9 @@ kill -CONT <pid>
 - **Sinalização**: `kill()` exige mesmo UID do processo alvo, ou root.
   Rode o monitor como root para poder agir sobre qualquer processo.
 
+## Fluxograma
 
+<img width="1857" height="222" alt="image" src="https://github.com/user-attachments/assets/daf3225e-fe0f-4371-baa8-13177727f726" />
 
 # Anti Bomb
 
