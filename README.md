@@ -158,7 +158,7 @@ Terminal, gerando um fork bomb de exemplo:
 config:
   layout: fixed
 ---
-flowchart TB
+flowchart RL
     Inicio(["Início do Processo"]) --> D["Transformação em Daemon"]
     D --> CicloPrincipal(("Início do Ciclo"))
     AcessaProc["Acessa diretório /proc"] --> ExtraiDados["Extrai PID e Nome do Processo"]
