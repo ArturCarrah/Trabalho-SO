@@ -148,3 +148,48 @@ Terminal, gerando um fork bomb de exemplo:
 8. **Restauramento do Ciclo:** Concluída a purga, o *daemon* limpa as estruturas de dados temporárias, redefine sua prioridade de execução para o nível normal e retoma a rotina padrão de varredura no diretório `/proc`.
 
 ### Nota: Caso quem faça o fork bomb seja o bash, então uma excessão é aberta e o processo bash de menor PID não recebe o sinal `SIGKILL`, pois causaria instabilidade no sistema. 
+
+
+## Fluxograma
+
+---
+config:
+  layout: fixed
+---
+flowchart TB
+    Inicio(["Início do Processo"]) --> D["Transformação em Daemon"]
+    D --> CicloPrincipal(("Início do Ciclo"))
+    AcessaProc["Acessa diretório /proc"] --> ExtraiDados["Extrai PID e Nome do Processo"]
+    ExtraiDados --> Indexa["Indexa em: map&lt;Nome, Vetor_PIDs&gt;"]
+    Indexa --> ChecaLimite{"PIDs &gt; Limite? Ex: 20"}
+    ChecaLimite -- Sim --> MarcaAlvo["Marca nome como Alvo e quebra o loop"]
+    MarcaAlvo --> ElevaPrio["Eleva Prioridade do Daemon ao Máximo"]
+    ElevaPrio --> VarreAlvo["Nova varredura buscando pelo Alvo no diretório /proc"]
+    VarreAlvo --> n3["Extrai PID e Nome do Processo"]
+    n3 -- Para todos os PIDs do diretório --> n4["Nome = Alvo?"]
+    CicloPrincipal --> AcessaProc
+    ChecaLimite -- Não --> n1["Ainda existe processos?"]
+    n1 -- Não --> CicloPrincipal
+    n4 -- Sim --> n5["Congela o PID com o SIGPAUSE"]
+    n5 --> n6["Armazena o PID na lista"]
+    n6 -- Depois de analisar todos os PIDs --> n7["Envia SIGKILL para todos os PIDs da lista que não sejam exceção"]
+    n7 --> n8["Volta a prioridade padrão"]
+    n8 --> CicloPrincipal
+    n1 -- Sim --> ExtraiDados
+
+    n3@{ shape: rect}
+    n4@{ shape: diam}
+    n1@{ shape: diam}
+    n5@{ shape: rect}
+    n6@{ shape: rect}
+    n7@{ shape: rect}
+     Inicio:::inicio
+     CicloPrincipal:::inicio
+     ChecaLimite:::decisao
+     n4:::decisao
+     n1:::decisao
+    classDef faseMonitoramento stroke:#818cf8,fill:#eef2ff
+    classDef faseConten stroke:#f87171,fill:#fef2f2
+    classDef faseRestaur stroke:#4ade80,fill:#f0fdf4
+    classDef decisao stroke:#facc15,fill:#fefce8
+    classDef inicio stroke:#2dd4bf,fill:#f0fdfa
